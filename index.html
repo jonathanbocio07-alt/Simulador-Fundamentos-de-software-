@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador ISO-300</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14212e;--mute:#5b6b7a;--line:#cfd8e1;--acc:#0b6e78;--accbg:#d9f0f2;--ok:#1b7f45;--okbg:#dcf3e5;--bad:#b3261e;--badbg:#fbe1de;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1820;--card:#18242f;--ink:#e8eef4;--mute:#97a8b8;--line:#2c3b49;--acc:#5cc8d2;--accbg:#173c42;--ok:#6fd89a;--okbg:#17372a;--bad:#ff8f86;--badbg:#42201d}}
+:root[data-theme="dark"]{--bg:#0f1820;--card:#18242f;--ink:#e8eef4;--mute:#97a8b8;--line:#2c3b49;--acc:#5cc8d2;--accbg:#173c42;--ok:#6fd89a;--okbg:#17372a;--bad:#ff8f86;--badbg:#42201d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-text-size-adjust:100%;margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:0 auto;padding:12px 12px 120px}
+h1{font-size:1.6rem;line-height:1.2;margin:0 0 8px}
+p{margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:6px 0 16px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .25s}
+.top{display:flex;justify-content:space-between;color:var(--mute);font-size:.9rem}
+.q{font-size:1.12rem;font-weight:600;margin:0 0 14px}
+.opt{display:flex;gap:12px;align-items:flex-start;min-height:60px;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:14px;margin:0 0 12px;cursor:pointer;line-height:1.4}
+.lt{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accbg);color:var(--acc);font-weight:700;font-size:.9rem;display:grid;place-items:center}
+.opt.ok .lt{background:var(--ok);color:var(--card)}.opt.bad .lt{background:var(--bad);color:var(--card)}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt:focus-visible,.btn:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.opt:disabled{cursor:default}
+.fb{border-radius:10px;padding:12px 14px;margin:6px 0 14px;font-size:.96rem}
+.fb.ok{background:var(--okbg)}.fb.bad{background:var(--badbg)}
+.btn{font:inherit;font-weight:600;background:var(--acc);color:var(--card);border:0;border-radius:10px;padding:12px 20px;cursor:pointer}
+.btn.alt{background:var(--accbg);color:var(--acc)}
+.score{font-size:3rem;font-weight:700;line-height:1;margin:6px 0}
+.rev{border-top:1px solid var(--line);padding:12px 0;font-size:.95rem}
+.rev b{display:block;margin-bottom:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.hd{position:sticky;top:env(safe-area-inset-top,0px);background:var(--card);z-index:2;margin:-20px -20px 0;padding:14px 20px 1px;border-radius:14px 14px 0 0}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
+.bottom .btn{display:block;width:100%;max-width:656px;margin:0 auto;padding:16px;font-size:1.05rem}
+.btn{min-height:52px}
+@media(max-width:520px){main{padding:0 0 120px}.card{border-radius:0;border-width:1px 0;padding:16px}.hd{margin:-16px -16px 0;padding:12px 16px 1px;border-radius:0}.q{font-size:1.18rem}.score{font-size:3.4rem}.row .btn{flex:1 1 100%}}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<div id="start" class="card">
+  <h1>Simulador ISO-300</h1>
+  <p>Fundamentos de Ingeniería de Software, Unidades 1, 2 y 3. Son 20 preguntas de selección múltiple. En cada intento cambia el orden de las preguntas y de las opciones.</p>
+  <p id="best" class="top"></p>
+  <button class="btn" id="go">Comenzar</button>
+</div>
+<div id="quiz" class="card hide" aria-live="polite">
+  <div class="hd"><div class="top"><span id="cnt"></span><span id="sc"></span></div>
+  <div class="bar"><i id="pb"></i></div></div>
+  <div style="height:14px"></div>
+  <p class="q" id="qt"></p>
+  <div id="ops"></div>
+  <div id="fb" class="fb hide"></div>
+  
+</div>
+<div id="end" class="card hide">
+  <h1>Resultado final</h1>
+  <div class="score" id="fs"></div>
+  <p id="fm"></p>
+  <div class="row"><button class="btn" id="again">Nuevo intento</button><button class="btn alt" id="rv">Ver errores</button></div>
+  <div id="rl" class="hide"></div>
+</div>
+</main>
+<div class="bottom hide" id="bt"><button class="btn" id="nx">Siguiente</button></div>
+<script>
+// [pregunta, correcta, incorrecta1, incorrecta2, incorrecta3, explicación]
+const D=[
+["¿Cuáles son los tres componentes del software?","Programas, datos y documentos","Hardware, programas y usuarios","Código, redes y bases de datos","Requisitos, diseño y pruebas","Software = programas (instrucciones) + datos + documentos. Los programas no son los únicos componentes."],
+["¿Cómo define el IEEE Std. 610 al software?","Programas, procedimientos, documentación y datos asociados a la operación de un sistema informático","Un conjunto de componentes físicos de un sistema informático","Únicamente el conjunto de programas que ejecuta una computadora","Un enfoque sistemático, disciplinado y cuantificable de desarrollo","La última opción es la definición de ingeniería del software (IEEE, 1993), no de software."],
+["¿Cuál afirmación sobre las características del software es correcta?","No se estropea, pero se deteriora por los cambios (mantenimiento)","Se estropea con el uso, igual que el hardware","Se fabrica en el sentido clásico, como el hardware","Añadir más personas siempre acelera su construcción","Cada cambio puede introducir nuevos defectos. Además, el software se desarrolla (no se fabrica) y personas y tiempo no son intercambiables."],
+["¿Cuál es un ejemplo de software de sistemas?","Sistemas operativos, compiladores y utilidades del sistema","Un sistema de cuentas o de planificación de recursos","Una hoja de cálculo","El control de las teclas de un horno microondas","El software de sistemas opera y mantiene el sistema informático. Cuentas es aplicación; el microondas es software empotrado."],
+["El «determinismo de la información» se refiere a:","La predictibilidad del orden y del tiempo de llegada de los datos","El significado y la forma de la información de entrada y salida","La cantidad de datos que procesa una aplicación","La seguridad con que se almacenan los datos","El significado y la forma es el «contenido». Un SO multiusuario es indeterminado."],
+["El software que reside en memoria de solo lectura y controla un microondas o los frenos de un auto es:","Software empotrado","Software de tiempo real","Software de gestión","Software de inteligencia artificial","El software empotrado vive en memoria de solo lectura y controla productos de consumo e industriales."],
+["¿Dónde y cuándo apareció el término «ingeniería del software»?","Conferencia de la OTAN, 1968","Artículo de Royce, 1970","Publicación del IEEE, 1993","Lanzamiento de Unix, 1969","Surgió en la conferencia de la OTAN de 1968, para provocar el pensamiento sobre la crisis del software."],
+["«Enfoque sistemático, disciplinado y cuantificable al desarrollo, operación y mantenimiento del software» es la definición de:","IEEE, 1993","Zelkovitz, 1978","Bohem, 1976","Bauer, 1972","Zelkovitz: estudio de principios y metodologías. Bohem: aplicación práctica del conocimiento científico. Bauer: software rentable, fiable y que trabaje en máquinas reales."],
+["¿Qué lenguaje introdujo la programación orientada a objetos en 1967?","Simula","Java","Cobol","Fortran","Fortran, Algol y Cobol son de finales de los 50 (científico, algorítmico, negocio). Java llegó en los 90 con su máquina virtual."],
+["El mantenimiento por cambios en el entorno (hardware, software de base, gestores de BD, comunicaciones) es el:","Adaptativo","Correctivo","Perfectivo","Evolutivo","Perfectivo: calidad interna. Evolutivo: nuevas necesidades del usuario. Correctivo: corrección de errores."],
+["¿Cuál es la base sobre la que reposan todas las capas de la ingeniería del software?","Un enfoque de calidad","Las herramientas","Los métodos","Los procesos","De abajo hacia arriba: calidad, procesos, métodos, herramientas. El proceso es el fundamento técnico, pero todo descansa en la calidad."],
+["¿Cuál función NO corresponde a la capa de proceso?","Automatizar actividades manuales con programas de apoyo","Dar una hoja de ruta del trabajo de ingeniería","Permitir al jefe de proyecto planificar la ejecución","Dar a las personas el contexto de su trabajo","Automatizar actividades manuales es función de la capa de herramientas."],
+["¿Cuál es un principio de la ingeniería del software?","Una buena gestión es más importante que una buena tecnología","Primero hazlo rápido, luego hazlo correcto","Las personas y el tiempo son intercambiables","Una buena tecnología es más importante que una buena gestión","Los otros están invertidos: primero correcto, luego rápido; personas y tiempo NO son intercambiables."],
+["En la etapa de prueba, ¿qué se considera una buena práctica?","Que las pruebas las haga alguien distinto al desarrollador que programó","Que las haga el mismo desarrollador que programó","Probar solo el sistema completo, sin probar módulos","Probar únicamente al final del proyecto","Se prueba cada módulo por separado y luego de forma integral."],
+["La capa de métodos se centra en:","El «cómo»: las actividades técnicas para realizar las tareas de ingeniería","El «qué»: la gestión del proyecto","El «cuándo»: la planificación del calendario","El «quién»: la asignación de responsables","La capa de proceso identifica las tareas; la de métodos da el «cómo»."],
+["Las cuatro actividades técnicas fundamentales de la capa de métodos son:","Análisis, diseño, codificación y pruebas","Requisitos, integración, instalación y mantenimiento","Planificación, análisis, diseño y entrega","Diseño, codificación, pruebas y documentación","Análisis (modelo de lo requerido), diseño, codificación (forma ejecutable) y pruebas (destapar errores)."],
+["¿Qué ventaja se destaca de usar herramientas?","La documentación se vuelve parte integral del trabajo, no una actividad adicional","Eliminan la necesidad de métodos y procesos","Garantizan que el software nunca tenga errores","Permiten prescindir del equipo de pruebas","La automatización elimina tedio, reduce errores y facilita las buenas prácticas."],
+["Sobre el modelo en cascada, ¿qué es correcto?","Royce lo presentó en 1970 como ejemplo de modelo defectuoso, sin usar el término «cascada»","Royce lo presentó en 1970 como modelo ideal, usando el término «cascada»","Permite volver libremente a fases anteriores sin costo","Entrega versiones parciales al cliente en cada fase","Es secuencial: cada etapa espera a la anterior y el producto se ve solo al final."],
+["El modelo en V surgió para resolver qué problema de la cascada?","Los defectos se encontraban tarde porque las pruebas se introducían al final","El exceso de iteraciones con el cliente","La falta de fase de mantenimiento","El uso excesivo de prototipos","El modelo en V empieza las pruebas lo antes posible (verificación y validación en cada fase)."],
+["¿Qué caracteriza al modelo incremental?","Cada incremento entrega un producto operativo; el primero es un producto esencial con requisitos básicos","No tiene fases de análisis, diseño ni pruebas","Exige requisitos cerrados al inicio y sin cambios","Entrega el producto solo al terminar todas las secuencias","El iterativo repite ciclos en cascada y refina requisitos con la evaluación del cliente. Ambos pueden tener problemas de arquitectura."]
+];
+const $=id=>document.getElementById(id);
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+let Q,i,score,wrong,locked,best=null;
+try{best=localStorage.getItem("iso300best")}catch(e){}
+function show(id){["start","quiz","end"].forEach(x=>$(x).classList.toggle("hide",x!==id))}
+if(best)$("best").textContent="Tu mejor resultado: "+best+" de "+D.length;
+function begin(){
+  Q=shuf(D).map(d=>({p:d[0],c:d[1],o:shuf(d.slice(1,5)),e:d[5]}));
+  i=0;score=0;wrong=[];show("quiz");render();
+}
+function render(){
+  const q=Q[i];locked=false;
+  $("cnt").textContent="Pregunta "+(i+1)+" de "+Q.length;
+  $("sc").textContent="Aciertos: "+score;
+  $("pb").style.width=(i/Q.length*100)+"%";
+  $("qt").textContent=q.p;
+  $("fb").className="fb hide";$("bt").classList.add("hide");window.scrollTo(0,0);
+  $("ops").innerHTML="";
+  q.o.forEach((t,k)=>{
+    const b=document.createElement("button");b.className="opt";b.dataset.t=t;
+    const l=document.createElement("span");l.className="lt";l.textContent="ABCD"[k];
+    const x=document.createElement("span");x.textContent=t;b.append(l,x);
+    b.onclick=()=>pick(b,t);$("ops").appendChild(b);
+  });
+}
+function pick(btn,t){
+  if(locked)return;locked=true;
+  const q=Q[i],ok=t===q.c;
+  if(ok)score++;else wrong.push({p:q.p,t:t,c:q.c,e:q.e});
+  [...$("ops").children].forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.t===q.c)b.classList.add("ok");
+    else if(b===btn)b.classList.add("bad");
+  });
+  $("sc").textContent="Aciertos: "+score;
+  const fb=$("fb");fb.className="fb "+(ok?"ok":"bad");
+  fb.textContent=(ok?"Correcto. ":"Incorrecto. La respuesta es: "+q.c+". ")+q.e;
+  $("nx").textContent=i===Q.length-1?"Ver resultado":"Siguiente";
+  $("bt").classList.remove("hide");
+  try{navigator.vibrate&&navigator.vibrate(ok?30:[40,40,40])}catch(e){}
+  setTimeout(()=>fb.scrollIntoView({behavior:"smooth",block:"nearest"}),50);
+}
+function next(){
+  if(i<Q.length-1){i++;render()}else finish();
+}
+function finish(){
+  show("end");$("bt").classList.add("hide");window.scrollTo(0,0);$("rl").classList.add("hide");
+  const pct=Math.round(score/Q.length*100);
+  $("fs").textContent=score+" / "+Q.length;
+  $("fm").textContent="Acertaste "+score+" de "+Q.length+" preguntas ("+pct+"%). "+(pct>=90?"Excelente dominio del material.":pct>=70?"Buen nivel. Repasa los errores y vuelve a intentar.":"Aún te conviene repasar las unidades y repetir el simulador.");
+  try{if(best===null||score>+best){best=String(score);localStorage.setItem("iso300best",best)}}catch(e){}
+  $("rv").classList.toggle("hide",!wrong.length);
+  $("rl").innerHTML=wrong.map(w=>"<div class='rev'><b>"+w.p+"</b>Tu respuesta: "+w.t+"<br>Correcta: "+w.c+"<br>"+w.e+"</div>").join("");
+}
+$("go").onclick=begin;$("again").onclick=begin;$("nx").onclick=next;
+$("rv").onclick=()=>$("rl").classList.toggle("hide");
+</script>
+</body>
+</html>
